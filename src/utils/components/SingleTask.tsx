@@ -4,12 +4,16 @@ export default function SingleTask({
     index,
     task,
     handleTaskModalOpen,
-    type
+    type,
+    handleEditTask,
+    handleDeleleTask
 }: {
     index: number
     task: TaskData
     handleTaskModalOpen: Function
-    type: OperationType
+    type: OperationType,
+    handleEditTask: Function
+    handleDeleleTask: Function
 }) {
     return (
         <div className="task">
@@ -20,7 +24,11 @@ export default function SingleTask({
                     <p>Description: {task?.description}</p>
                     <p>Due Date: {task?.dueDate.toString()}</p>
                     <p>Status: {task?.status}</p>
-                    {(type && type !== "task") && <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3" onClick={() => handleTaskModalOpen(task)}>Show Sub Tasks</button>}
+                    <div className="flex justify-end gap-1">
+                        {(type && type !== "task") && <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-3" onClick={() => handleTaskModalOpen(task)}>Show Sub Tasks</button>}
+                        <button type="button" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-3" onClick={() => handleEditTask(task)} title="Edit Task">✎</button>
+                        <button type="button" className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-3" onClick={() => handleDeleleTask(task)} title="Delete Task">🗑</button>
+                    </div>
                 </div>
             </details>
         </div>

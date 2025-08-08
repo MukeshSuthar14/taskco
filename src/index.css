@@ -24,4 +24,13 @@ body {
     .layout {
         padding: 50px 30px;
     }
+    .project-title {
+        @apply text-center w-full;
+    }
+    .project {
+        @apply flex-col gap-5;
+    }
+    .project-actions {
+        @apply justify-center;
+    }
 }

@@ -1,10 +1,11 @@
 import type { OperationType, ProjectData, ProjectFormData, TaskData, TaskFormData } from "./types";
 
-const projectKey = "projects" 
+const projectKey = "projects"
 
 export function getProjects(projectId: number | null = null): ProjectData[] | null {
-    const projects = JSON.parse(localStorage.getItem(projectKey) as string).filter(Boolean);
+    let projects = JSON.parse(localStorage.getItem(projectKey) as string);
     if (projects) {
+        projects = projects.filter(Boolean)
         if (projectId) {
             let project = projects.find((project: ProjectData) => project?.id === projectId);
             return project;
@@ -22,7 +23,7 @@ export function insertProject(data: ProjectFormData): number {
     } else {
         projects = []
     }
-    let nextSequence = (projects && projects.length > 0) ? Math.max(...projects.map(project => project.sequence)) + 1: 1;
+    let nextSequence = (projects && projects.length > 0) ? Math.max(...projects.map(project => project.sequence)) + 1 : 1;
     projects.push({ ...data, id: newId, sequence: nextSequence });
     setProjects(projects)
     return newId;
@@ -41,7 +42,7 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
             if (!projects[projectIndex].task) {
                 projects[projectIndex].task = [];
             } else {
-                newTaskId = projects[projectIndex].task.length;
+                newTaskId = projects[projectIndex].task.length + 1;
             }
             projects[projectIndex].task.push({ ...task, id: newTaskId })
             setProjects(projects)
@@ -57,7 +58,7 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
                     if (!project?.task[taskIndex].subTask) {
                         project.task[taskIndex].subTask = [];
                     } else {
-                        newTaskId = project?.task[taskIndex].subTask.length;
+                        newTaskId = project?.task[taskIndex].subTask.length + 1;
                     }
                     project?.task[taskIndex].subTask.push({ ...task, id: newTaskId })
                     setProjects(projects)
@@ -67,4 +68,46 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
         }
     }
     return null;
+}
+
+export function deleteProject(id: number) {
+    let projects = getProjects();
+    if (projects) {
+        let projectIndex = projects.findIndex((project: ProjectData) => project?.id === id);
+        if (projects[projectIndex]) {
+            delete projects[projectIndex];
+            setProjects(projects)
+            return true;
+        }
+    }
+    return false
+}
+
+export function updateTask(task: TaskFormData, type: OperationType, projectId: number, taskId: number, subTaskId: number | null = null) {
+    let projects = getProjects();
+    if (type === "project" && projects) {
+        let projectIndex = projects.findIndex((project: ProjectData) => project?.id === projectId);
+        if (projectIndex !== -1 && projects[projectIndex] && projects[projectIndex]?.task?.length) {
+            let taskIndex = projects[projectIndex]?.task.findIndex((task: TaskData) => task.id === taskId);
+            if (taskIndex !== -1 && projects[projectIndex].task[taskIndex]) {
+                projects[projectIndex].task[taskIndex] = { ...task, id: projects[projectIndex].task[taskIndex].id }
+                setProjects(projects)
+                return true
+            }
+        }
+    } else if (type === "task" && projects) {
+        let projectIndex = projects.findIndex((project: ProjectData) => project?.id === projectId);
+        if (projectIndex !== -1 && projects[projectIndex] && projects[projectIndex]?.task) {
+            let taskIndex = projects[projectIndex]?.task.findIndex((task: TaskData) => task.id === taskId);
+            if (taskIndex !== -1 && projects[projectIndex].task[taskIndex] && projects[projectIndex].task[taskIndex].subTask?.length) {
+                let subTaskIndex = projects[projectIndex]?.task[taskIndex].subTask.findIndex((task: TaskData) => task.id === subTaskId);
+                if (subTaskIndex !== -1 && projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex]) {
+                    projects[projectIndex].task[taskIndex].subTask[subTaskIndex] = { ...task, id: projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex].id }
+                    setProjects(projects)
+                    return true
+                }
+            }
+        }
+    }
+    return false
 }

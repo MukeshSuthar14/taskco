@@ -22,7 +22,8 @@ export interface TaskFormData {
     title: string
     description: string
     dueDate: Date
-    status: "Pending" | "In-Progress" | "Completed"
+    status: "Pending" | "In-Progress" | "Completed" | ""
 }
 
 export type OperationType = "task" | "project"
+export type FormActions = "add" | "update"

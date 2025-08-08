@@ -1,13 +1,16 @@
 import { useForm } from "react-hook-form"
 import type { Message, ProjectData, ProjectFormData } from "../utils/types";
 import { useEffect, useState } from "react";
-import { getProjects, insertProject } from "../utils/helper";
+import { deleteProject, getProjects, insertProject } from "../utils/helper";
 import Task from "../utils/components/Task";
 import NotifyMessage from "../utils/components/NotifyMessage";
 import Modal from "../utils/components/Modal";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Project from "../utils/components/Project";
+import { DndContext, type DragEndEvent } from '@dnd-kit/core';
+import Droppable from "../utils/components/dnd/Draggable";
+import Draggable from "../utils/components/dnd/Draggable";
 
 export default function Projects() {
 
@@ -16,6 +19,7 @@ export default function Projects() {
     const [renderRequired, setRenderRequired] = useState<boolean>(true);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
+    const [parentProject, setParentProject] = useState<ProjectData | null>(null);
     const defaultValues: ProjectFormData = {
         project: ""
     }
@@ -32,10 +36,12 @@ export default function Projects() {
     const handleModalClose = () => {
         setModalOpen(false)
         setSelectedProject(null)
+        setParentProject(null)
     }
 
     const handleModalOpen = (currentProject: ProjectData) => {
         setSelectedProject(currentProject)
+        setParentProject(currentProject)
         setModalOpen(true)
     }
 
@@ -44,6 +50,19 @@ export default function Projects() {
         if (id) {
             setNotifyMessage({ message: "Project Added Successfully!!" });
             reset();
+            setRenderRequired(true)
+        }
+    }
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        console.log(event);
+    }
+
+    const handleDeleteProject = (project: ProjectData) => {
+        const permission = confirm("Are You Sure! You Want To Delete This Project")
+        if (permission) {
+            deleteProject(project?.id);
+            setNotifyMessage({ message: "Project Deleted Successfully!!" });
             setRenderRequired(true)
         }
     }
@@ -64,7 +83,7 @@ export default function Projects() {
         <div className="project-add">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <strong className="font-bold">Attention!</strong>
-                <span className="block sm:inline"> Your Data Is Secure & Accessible Only In This Browser.</span>
+                <span className="block sm:inline"> Your Data Is Secure & Only Accessible In This Browser.</span>
             </div>
             {(notifyMessage && notifyMessage?.message) && (
                 <NotifyMessage notifyMessage={notifyMessage} />
@@ -93,18 +112,22 @@ export default function Projects() {
                 </div>
             )}
             {(projects && projects?.length > 0) ? (
-                <div className="project-container grid mt-10 gap-5 grid-cols-3 border-sm">
-                    <DndProvider backend={HTML5Backend}>
+                <DndContext onDragEnd={handleDragEnd}>
+                    <div className="project-container grid mt-10 gap-5 grid-cols-3 border-sm">
                         {projects?.map((project: ProjectData, key: number) => (
-                            <Project project={project} key={key} handleModalOpen={handleModalOpen} />
+                            // <Draggable>
+                                // <Droppable>
+                                <Project project={project} key={key} handleModalOpen={handleModalOpen} handleDeleteProject={handleDeleteProject} />
+                                // </Droppable>
+                            // </Draggable>
                         ))}
-                    </DndProvider>
-                </div>
+                    </div>
+                </DndContext>
             ) : (
                 <div className="text-center block mt-10 text-lg">No Project Found.</div>
             )}
             <Modal isOpen={modalOpen} title={`Project: ${selectedProject?.project}`} onClose={handleModalClose}>
-                {selectedProject && <Task type="project" project={selectedProject} setRenderRequired={setRenderRequired} />}
+                {selectedProject && <Task type="project" parentProject={parentProject} project={selectedProject} setRenderRequired={setRenderRequired} />}
             </Modal>
         </div>
     )
