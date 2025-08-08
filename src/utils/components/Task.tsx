@@ -1,58 +1,67 @@
-import { useForm } from "react-hook-form";
-import type { ProjectData, TaskData, TaskFormData } from "../types";
-import { insertTask } from "../helper";
+import { useState } from "react";
+import type { OperationType, ProjectData, TaskData } from "../types";
+import Modal from "./Modal";
+import TaskForm from "./TaskForm";
+import SingleTask from "./SingleTask";
 
 export default function Task({
-    project
+    project,
+    task,
+    type,
+    setRenderRequired
 }: {
-    project: ProjectData
+    type: OperationType
+    project?: ProjectData | null
+    task?: TaskData | null
+    setRenderRequired: Function
 }) {
-
-    const taskFormDefaultValues: TaskFormData = {
-        name: "",
-        projectId: ""
+    const [taskFormModal, setTaskFormModal] = useState<boolean>(false);
+    const [subTaskFormModal, setSubTaskFormModal] = useState<boolean>(false);
+    const [selectedTask, setSelectedTask] = useState<TaskData | null>(null)
+    const handleModalClose = () => {
+        setRenderRequired(true)
+        setSelectedTask(null)
+        setTaskFormModal(false)
+    }
+    const handleModalOpen = (data: any) => {
+        setSelectedTask(data)
+        setTaskFormModal(true)
+    }
+    const handleTaskModalClose = () => {
+        setSubTaskFormModal(false)
+    }
+    const handleTaskModalOpen = (task: TaskData) => {
+        setSelectedTask(task)
+        setSubTaskFormModal(true)
     }
 
-    const {
-        register: registerTaskForm,
-        formState: { errors: taskFormErrors },
-        handleSubmit: handleTaskFormSubmit,
-        reset: resetTaskForm
-    } = useForm({
-        defaultValues: taskFormDefaultValues
-    })
-
-    const handleTaskForm = (data: TaskFormData) => {
-        insertTask(data, parseInt(data?.projectId));
-        resetTaskForm();
-    }
-    
-    return (
-        <div className="tasks mt-5 p-3 border-2 border-cyan-2">
-            <div className="task-title text-center text-2xl border-b-2 border-black pb-2">
-                Tasks
-            </div>
-            {(project?.task && project?.task?.length > 0) ? (
-                <div className="task-container">
-                    {project?.task?.map((task: TaskData, taskKey: number) => (
-                        <div className="task" key={`${taskKey}`}>
-                            {task?.name}
-                        </div>
+    const taskListing = (givenTask: any): React.ReactNode => {
+        return (
+            (givenTask && givenTask?.length > 0) ? (
+                <div className="task-container border-b-2 border-black py-3 px-1 flex flex-col gap-2">
+                    {givenTask?.map((task: TaskData, taskKey: number) => (
+                        <SingleTask type={type} task={task} index={taskKey} key={taskKey} handleTaskModalOpen={handleTaskModalOpen} />
                     ))}
                 </div>
             ) : (
-                <div className="text-center block mt-2">No Task Pending.</div>
-            )}
-            <div className="task-add border-t-2 border-black p-2 mt-5">
-                <form className="flex justify-between" onSubmit={handleTaskFormSubmit(handleTaskForm)}>
-                    <input type="text" className="w-full px-4 py-2 mr-2 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Enter Project Task" autoComplete="off" {...registerTaskForm("name", { required: "Please Enter Task" })} />
-                    <input type="hidden" value={project?.id} {...registerTaskForm('projectId', { required: true })} />
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add</button>
-                </form>
-                {(taskFormErrors && taskFormErrors.name) && (
-                    <label className="text-red-500">{taskFormErrors?.name?.message}</label>
-                )}
+                <div className="text-center block pt-2 pb-2 border-b-2 border-black">No Task Pending.</div>
+            )
+        )
+    }
+
+    return (
+        <div className="tasks border-cyan-2 py-5 mb-5">
+            <div className="task-title text-center text-2xl border-b-2 border-black pb-2 flex justify-between">
+                <p>Tasks</p>
+                <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded text-[1rem]" onClick={() => handleModalOpen(type === "task" ? task: project)}>Add Task</button>
             </div>
+            {type === "task" ? taskListing(task?.subTask) : taskListing(project?.task)}
+            <Modal isOpen={subTaskFormModal} title={`Task: ${selectedTask?.title}${project && project.project ? " of " + project.project : ""}`} onClose={handleTaskModalClose}>
+                {selectedTask && <Task type="task" task={selectedTask} setRenderRequired={setRenderRequired} />}
+            </Modal>
+            <Modal isOpen={taskFormModal} title={`Add ${selectedTask && selectedTask.title ? "SubTask": "Task"} For ${project?.project ? "Project " + project?.project: "Task " + selectedTask?.title}`} onClose={handleModalClose}>
+                {(project || selectedTask) && <TaskForm type="task" task={selectedTask} project={project} handleModalClose={handleModalClose} />}
+            </Modal>
         </div>
     )
 }

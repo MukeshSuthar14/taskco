@@ -8,7 +8,7 @@ export default function Layout({
     children: React.ReactNode
 }) {
     return (
-        <div className="w-full bg-emerald-100 p-100 layout">
+        <div className="w-full p-100 layout">
             <Header />
             {children}
             <Footer />

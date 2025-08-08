@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    @apply bg-emerald-100;
+}
+
 .layout {
     padding: 50px 100px;
 }
@@ -14,9 +18,7 @@
     transform: scale(1.05);
 }
 
-.tasks {
-    background-color: rgb(182 233 249);
-}
+.tasks {}
 
 @media (max-width:1000px) {
     .layout {

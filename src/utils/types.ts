@@ -2,15 +2,15 @@ export interface ProjectFormData {
     project: string
 }
 
-export interface TaskData {
+export interface TaskData extends TaskFormData {
     id: number
-    name: string
     subTask?: TaskData[]
 }
 
 export interface ProjectData {
     id: number
     project: string
+    sequence: number
     task?: TaskData[]
 }
 
@@ -19,6 +19,10 @@ export interface Message {
 }
 
 export interface TaskFormData {
-    projectId: string
-    name: string
+    title: string
+    description: string
+    dueDate: Date
+    status: "Pending" | "In-Progress" | "Completed"
 }
+
+export type OperationType = "task" | "project"

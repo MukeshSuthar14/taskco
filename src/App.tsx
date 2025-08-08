@@ -1,12 +1,16 @@
+import { DndProvider } from 'react-dnd'
 import Layout from './layouts/Layout'
-import Project from './pages/Project'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import Projects from './pages/Projects'
 
 function App() {
 
   return (
-    <Layout>
-      <Project />
-    </Layout>
+    // <DndProvider backend={HTML5Backend}>
+      <Layout>
+        <Projects />
+      </Layout>
+    // </DndProvider>
   )
 }
 
