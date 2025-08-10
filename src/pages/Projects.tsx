@@ -5,12 +5,12 @@ import { deleteProject, getProjects, insertProject } from "../utils/helper";
 import Task from "../utils/components/Task";
 import NotifyMessage from "../utils/components/NotifyMessage";
 import Modal from "../utils/components/Modal";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from "react-dnd-html5-backend";
+// import { DndProvider } from 'react-dnd';
+// import { HTML5Backend } from "react-dnd-html5-backend";
 import Project from "../utils/components/Project";
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
-import Droppable from "../utils/components/dnd/Draggable";
-import Draggable from "../utils/components/dnd/Draggable";
+// import Droppable from "../utils/components/dnd/Draggable";
+// import Draggable from "../utils/components/dnd/Draggable";
 
 export default function Projects() {
 
@@ -127,7 +127,7 @@ export default function Projects() {
                 <div className="text-center block mt-10 text-lg">No Project Found.</div>
             )}
             <Modal isOpen={modalOpen} title={`Project: ${selectedProject?.project}`} onClose={handleModalClose}>
-                {selectedProject && <Task type="project" parentProject={parentProject} project={selectedProject} setRenderRequired={setRenderRequired} />}
+                {(selectedProject && parentProject) && <Task type="project" parentProject={parentProject} project={selectedProject} setRenderRequired={setRenderRequired} />}
             </Modal>
         </div>
     )

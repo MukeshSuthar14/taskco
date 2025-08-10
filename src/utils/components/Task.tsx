@@ -44,7 +44,7 @@ export default function Task({
         setTaskFormAction("update")
     }
     const handleDeleleTask = (task: TaskData) => {
-
+        task;
     }
     const taskListing = (givenTask: any): React.ReactNode => {
         return (

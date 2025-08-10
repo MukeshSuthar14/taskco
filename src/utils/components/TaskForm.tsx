@@ -15,7 +15,7 @@ export default function TaskForm({
     project?: ProjectData | null
     handleModalClose: Function
     formAction: FormActions
-    parentProject: ProjectData
+    parentProject: ProjectData | undefined
 }) {
     const taskFormDefaultValues: TaskFormData = {
         title: (task && formAction === "update") ? task?.title: "",
