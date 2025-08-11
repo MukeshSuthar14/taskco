@@ -1,16 +1,15 @@
 import { useForm } from "react-hook-form"
 import type { Message, ProjectData, ProjectFormData } from "../utils/types";
 import { useEffect, useState } from "react";
-import { deleteProjectOrTask, getProjects, insertProject } from "../utils/helper";
+import { changeProjectSequence, deleteProjectOrTask, getProjects, insertProject } from "../utils/helper";
 import Task from "../utils/components/Task";
 import NotifyMessage from "../utils/components/NotifyMessage";
 import Modal from "../utils/components/Modal";
-// import { DndProvider } from 'react-dnd';
-// import { HTML5Backend } from "react-dnd-html5-backend";
 import Project from "../utils/components/Project";
-import { DndContext, type DragEndEvent } from '@dnd-kit/core';
+import { closestCorners, DndContext, type DragEndEvent } from '@dnd-kit/core';
 // import Droppable from "../utils/components/dnd/Draggable";
 // import Draggable from "../utils/components/dnd/Draggable";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 export default function Projects() {
 
@@ -20,6 +19,7 @@ export default function Projects() {
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
     const [parentProject, setParentProject] = useState<ProjectData | null>(null);
+    const [sorting, setSorting] = useState<boolean>(true)
     const defaultValues: ProjectFormData = {
         project: ""
     }
@@ -62,7 +62,17 @@ export default function Projects() {
     }
 
     const handleDragEnd = (event: DragEndEvent) => {
-        console.log(event);
+        const { active, over } = event;
+
+        if (active.id === over?.id) return;
+
+        const activeElementIndex = projects?.findIndex((project: ProjectData) => project.id === active.id);
+        const overElementIndex = projects?.findIndex((project: ProjectData) => project.id === over?.id);
+
+        const updatedProjects = arrayMove<ProjectData>(projects as ProjectData[], activeElementIndex as number, overElementIndex as number);
+
+        changeProjectSequence(updatedProjects)
+        setProjects(updatedProjects);
     }
 
     const handleDeleteProject = (project: ProjectData) => {
@@ -108,9 +118,9 @@ export default function Projects() {
             )}
             <div className="project-add">
                 <div className="">
-                    <div className="bg-white shadow-md rounded-lg p-6">
+                    <div className="rounded-lg">
                         <form className="block m-auto" onSubmit={handleSubmit(handleProject)}>
-                            <div className="flex">
+                            <div className="flex justify-between gap-1">
                                 <input type="text" className="w-full px-4 py-2 mr-2 rounded-lg focus:outline-none focus:border-blue-500" autoComplete="off" placeholder="Enter Your Project Name" {...register("project", { required: "Please Enter Project Name" })} />
                                 <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                     Add
@@ -132,21 +142,18 @@ export default function Projects() {
                 </form>
                 {(projects && projects?.length > 0) && (
                     <div className="flex justify-end gap-5">
-                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Enable Drag & Drop</button>
-                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Change Sequence</button>
+                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setSorting(!sorting)}>{sorting ? "Enable": "Disable"} Drag & Drop</button>
                     </div>
                 )}
             </div>
             {(projects && projects?.length > 0) ? (
-                <DndContext onDragEnd={handleDragEnd}>
+                <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
                     <div className="project-container grid mt-10 gap-5 grid-cols-3 border-sm">
-                        {projects?.map((project: ProjectData, key: number) => (
-                            // <Draggable>
-                            // <Droppable>
-                            <Project project={project} key={key} handleModalOpen={handleModalOpen} handleDeleteProject={handleDeleteProject} />
-                            // </Droppable>
-                            // </Draggable>
-                        ))}
+                        <SortableContext items={projects} strategy={verticalListSortingStrategy} disabled={sorting}>
+                            {projects?.map((project: ProjectData, key: number) => (
+                                <Project project={project} key={key} handleModalOpen={handleModalOpen} handleDeleteProject={handleDeleteProject} />
+                            ))}
+                        </SortableContext>
                     </div>
                 </DndContext>
             ) : (

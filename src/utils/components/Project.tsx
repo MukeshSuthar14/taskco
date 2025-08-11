@@ -1,5 +1,7 @@
 import { useMemo } from "react"
 import type { ProjectData, TaskData, TaskStats } from "../types"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities";
 
 export default function Project({
     project,
@@ -10,6 +12,11 @@ export default function Project({
     handleModalOpen: Function,
     handleDeleteProject: Function
 }) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: project?.id });
+    const divStyles = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    }
     const calculateTaskStatus = (tasks: TaskData[]): TaskStats => {
         let totalTask = 0, pendingTask = 0, completedTask = 0, inProgressTask = 0
         if (project.task) {
@@ -50,7 +57,7 @@ export default function Project({
     }
 
     return (
-        <div className="flex flex-col justify-between project rounded-lg bg-[#8ac4ed] p-5">
+        <div className="flex flex-col justify-between project rounded-lg bg-[#8ac4ed] p-5" ref={setNodeRef} {...attributes} {...listeners} style={divStyles}>
             <div className="flex justify-between w-[100%]">
                 <div className="project-title text-left text-2xl w-[70%]">
                     <b>{project.project}</b>

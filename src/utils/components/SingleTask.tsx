@@ -1,4 +1,6 @@
+import { CSS } from "@dnd-kit/utilities"
 import type { OperationType, TaskData } from "../types"
+import { useSortable } from "@dnd-kit/sortable"
 
 export default function SingleTask({
     index,
@@ -15,8 +17,13 @@ export default function SingleTask({
     handleEditTask: Function
     handleDeleleTask: Function
 }) {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task?.id });
+    const divStyles = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    }
     return (
-        <div className="task">
+        <div className="task" ref={setNodeRef} {...attributes} {...listeners} style={divStyles}>
             <details className="py-1 bg-emerald-100 w-full">
                 <summary className="py-1 pl-5 pr-5 rounded text-[1rem]">{index + 1}) {task?.title}</summary>
                 <div className="py-1 pl-5 pr-5">

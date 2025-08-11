@@ -14,11 +14,15 @@ export function getProjects(projectId: number | null = null): ProjectData[] | nu
     return null;
 }
 
+export function taskSort(task: TaskData[] | undefined) {
+    return task && task.sort((first: TaskData, secound: TaskData) => first.sequence - secound.sequence);
+}
+
 export function insertProject(data: ProjectFormData): number {
     let projects = getProjects();
     let newId = 1;
     if (projects) {
-        newId = projects.length;
+        newId = projects.length + 1;
     } else {
         projects = []
     }
@@ -43,7 +47,8 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
             } else {
                 newTaskId = projects[projectIndex].task.length + 1;
             }
-            projects[projectIndex].task.push({ ...task, id: newTaskId })
+            let nextSequence = (projects[projectIndex] && projects[projectIndex].task.length > 0) ? Math.max(...projects[projectIndex].task.map(project => project.sequence)) + 1 : 1;
+            projects[projectIndex].task.push({ ...task, id: newTaskId, sequence: nextSequence })
             setProjects(projects)
             return newTaskId;
         }
@@ -59,7 +64,8 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
                     } else {
                         newTaskId = project?.task[taskIndex].subTask.length + 1;
                     }
-                    project?.task[taskIndex].subTask.push({ ...task, id: newTaskId })
+                    let nextSequence = (project?.task[taskIndex] && project?.task[taskIndex].subTask.length > 0) ? Math.max(...project?.task[taskIndex].subTask.map(project => project.sequence)) + 1 : 1;
+                    project?.task[taskIndex].subTask.push({ ...task, id: newTaskId, sequence: nextSequence })
                     setProjects(projects)
                     return newTaskId;
                 }
@@ -113,7 +119,7 @@ export function updateTask(task: TaskFormData, type: OperationType, projectId: n
         if (projectIndex !== -1 && projects[projectIndex] && projects[projectIndex]?.task?.length) {
             let taskIndex = projects[projectIndex]?.task.findIndex((task: TaskData) => task.id === taskId);
             if (taskIndex !== -1 && projects[projectIndex].task[taskIndex]) {
-                projects[projectIndex].task[taskIndex] = { ...task, id: projects[projectIndex].task[taskIndex].id }
+                projects[projectIndex].task[taskIndex] = { ...task, id: projects[projectIndex].task[taskIndex].id, sequence: projects[projectIndex].task[taskIndex].sequence }
                 setProjects(projects)
                 return true
             }
@@ -125,10 +131,55 @@ export function updateTask(task: TaskFormData, type: OperationType, projectId: n
             if (taskIndex !== -1 && projects[projectIndex].task[taskIndex] && projects[projectIndex].task[taskIndex].subTask?.length) {
                 let subTaskIndex = projects[projectIndex]?.task[taskIndex].subTask.findIndex((task: TaskData) => task.id === subTaskId);
                 if (subTaskIndex !== -1 && projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex]) {
-                    projects[projectIndex].task[taskIndex].subTask[subTaskIndex] = { ...task, id: projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex].id }
+                    projects[projectIndex].task[taskIndex].subTask[subTaskIndex] = { ...task, id: projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex].id, sequence: projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex].sequence }
                     setProjects(projects)
                     return true
                 }
+            }
+        }
+    }
+    return false
+}
+
+export function changeProjectSequence(updatedProjects: ProjectData[]) {
+    let sequence = 1;
+    for (let project of updatedProjects) {
+        if (project && project?.sequence) {
+            project.sequence = sequence;
+            sequence++
+        }
+    }
+    setProjects(updatedProjects)
+    return true
+}
+
+export function changeTaskSequence(type: OperationType, updatedTask: TaskData[], projectId: number, taskId: number) {
+    let projects = getProjects();
+    let sequence = 1;
+    for (let task of updatedTask) {
+        if (task && task?.sequence) {
+            task.sequence = sequence;
+            sequence++
+        }
+    }
+    if (type === "task") {
+        if (projects) {
+            let projectIndex = projects.findIndex((project: ProjectData) => project?.id === projectId);
+            if (projectIndex !== -1 && projects[projectIndex] && projects[projectIndex]?.task?.length) {
+                let taskIndex = projects[projectIndex]?.task.findIndex((task: TaskData) => task.id === taskId);
+                if (taskIndex !== -1 && projects[projectIndex].task[taskIndex] && projects[projectIndex].task[taskIndex].subTask?.length) {
+                    projects[projectIndex].task[taskIndex].subTask = updatedTask;
+                    setProjects(projects)
+                }
+            }
+        }
+    } else if (type === "project") {
+        if (projects) {
+            let projectIndex = projects.findIndex((project: ProjectData) => project?.id === projectId);
+            if (projectIndex !== -1 && projects[projectIndex] && projects[projectIndex]?.task?.length) {
+                projects[projectIndex].task = updatedTask;
+                setProjects(projects)
+                return true
             }
         }
     }

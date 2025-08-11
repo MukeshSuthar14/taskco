@@ -3,7 +3,8 @@ export interface ProjectFormData {
 }
 
 export interface TaskData extends TaskFormData {
-    id: number
+    id: number,
+    sequence: number
     subTask?: TaskData[]
 }
 
