@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    @apply bg-emerald-100;
+}
+
+.layout {
+    padding: 10px 100px;
+}
+
+.project-add {
+    margin-top: 20px;
+}
+
+.project:hover {
+    transform: scale(1.05);
+}
+
+.tasks {}
+
+@media (max-width:1000px) {
+    .layout {
+        padding: 30px;
+    }
+
+    .project-add {
+        margin-top: 20px;
+    }
+
+    .project-title {
+        @apply text-center w-full;
+    }
+
+    .project {
+        @apply flex-col gap-5;
+    }
+
+    .project-actions {
+        @apply justify-center;
+    }
+
+    .project-container {
+        @apply grid-cols-2;
+    }
+}
