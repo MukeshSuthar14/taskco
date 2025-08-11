@@ -18,7 +18,7 @@ export default function SingleTask({
     return (
         <div className="task">
             <details className="py-1 bg-emerald-100 w-full">
-                <summary className="py-1 pl-5 pr-5 rounded text-[1rem]">{index + 1}) Title: {task?.title}, Status: {task.status}</summary>
+                <summary className="py-1 pl-5 pr-5 rounded text-[1rem]">{index + 1}) {task?.title}</summary>
                 <div className="py-1 pl-5 pr-5">
                     <p>Title: {task?.title}</p>
                     <p>Description: {task?.description}</p>

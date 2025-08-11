@@ -27,3 +27,10 @@ export interface TaskFormData {
 
 export type OperationType = "task" | "project"
 export type FormActions = "add" | "update"
+
+export interface TaskStats {
+    totalTask: number
+    pendingTask: number
+    completedTask: number
+    inProgressTask: number
+}

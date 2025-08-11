@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form"
 import type { Message, ProjectData, ProjectFormData } from "../utils/types";
 import { useEffect, useState } from "react";
-import { deleteProject, getProjects, insertProject } from "../utils/helper";
+import { deleteProjectOrTask, getProjects, insertProject } from "../utils/helper";
 import Task from "../utils/components/Task";
 import NotifyMessage from "../utils/components/NotifyMessage";
 import Modal from "../utils/components/Modal";
@@ -29,6 +29,13 @@ export default function Projects() {
         formState: { errors },
         handleSubmit,
         reset
+    } = useForm({
+        defaultValues: defaultValues
+    })
+
+    const {
+        register: filterRegister,
+        handleSubmit: filterSubmit
     } = useForm({
         defaultValues: defaultValues
     })
@@ -61,9 +68,20 @@ export default function Projects() {
     const handleDeleteProject = (project: ProjectData) => {
         const permission = confirm("Are You Sure! You Want To Delete This Project")
         if (permission) {
-            deleteProject(project?.id);
+            deleteProjectOrTask(project?.id);
             setNotifyMessage({ message: "Project Deleted Successfully!!" });
             setRenderRequired(true)
+        }
+    }
+
+    const handleSearchProject = (data: ProjectFormData) => {
+        const allProjects = getProjects();
+        if (data?.project.trim()) {
+            const filterProject = allProjects?.filter(({ project }: ProjectData) => project.toLowerCase().includes(data?.project.toLowerCase()));
+            if (filterProject) setProjects(filterProject);
+            else setProjects(null);
+        } else {
+            setProjects(allProjects);
         }
     }
 
@@ -105,26 +123,34 @@ export default function Projects() {
                     </div>
                 </div>
             </div>
-            {(projects && projects?.length > 0) && (
-                <div className="project-add flex justify-end gap-5">
-                    <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Enable Drag & Drop</button>
-                    <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Change Sequence</button>
-                </div>
-            )}
+            <div className="project-add flex flex-cols justify-between gap-5">
+                <form onSubmit={filterSubmit(handleSearchProject)}>
+                    <div className="flex justify-end gap-5">
+                        <input type="text" className="w-[500px] p-3 focus:outline-none rounded" placeholder="Search By Project Name..." {...filterRegister("project", { required: false })} />
+                        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Search</button>
+                    </div>
+                </form>
+                {(projects && projects?.length > 0) && (
+                    <div className="flex justify-end gap-5">
+                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Enable Drag & Drop</button>
+                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Change Sequence</button>
+                    </div>
+                )}
+            </div>
             {(projects && projects?.length > 0) ? (
                 <DndContext onDragEnd={handleDragEnd}>
                     <div className="project-container grid mt-10 gap-5 grid-cols-3 border-sm">
                         {projects?.map((project: ProjectData, key: number) => (
                             // <Draggable>
-                                // <Droppable>
-                                <Project project={project} key={key} handleModalOpen={handleModalOpen} handleDeleteProject={handleDeleteProject} />
-                                // </Droppable>
+                            // <Droppable>
+                            <Project project={project} key={key} handleModalOpen={handleModalOpen} handleDeleteProject={handleDeleteProject} />
+                            // </Droppable>
                             // </Draggable>
                         ))}
                     </div>
                 </DndContext>
             ) : (
-                <div className="text-center block mt-10 text-lg">No Project Found.</div>
+                <div className="text-center block mt-10 text-lg rounded-lg bg-[#8ac4ed] p-5">No Project Found.</div>
             )}
             <Modal isOpen={modalOpen} title={`Project: ${selectedProject?.project}`} onClose={handleModalClose}>
                 {(selectedProject && parentProject) && <Task type="project" parentProject={parentProject} project={selectedProject} setRenderRequired={setRenderRequired} />}

@@ -35,10 +35,8 @@ export default function TaskForm({
 
     const handleTaskForm = (data: TaskFormData, projectOrTask: ProjectData | TaskData) => {
         if (formAction === "add") {
-            console.log("Inserting =>>", data, projectOrTask.id, type);
             insertTask(data, projectOrTask?.id, type);
         } else {
-            console.log("Updating =>>", "data =>>", data, "type =>>", type, "parentProject.id =>>", parentProject?.id, "project.id =>>", project?.id, "task.id =>>", task?.id);
             if (project && task && parentProject) {
                 updateTask(data, type, parentProject?.id, project?.id, task?.id);
             }

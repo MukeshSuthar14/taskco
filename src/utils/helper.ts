@@ -5,7 +5,6 @@ const projectKey = "projects"
 export function getProjects(projectId: number | null = null): ProjectData[] | null {
     let projects = JSON.parse(localStorage.getItem(projectKey) as string);
     if (projects) {
-        projects = projects.filter(Boolean)
         if (projectId) {
             let project = projects.find((project: ProjectData) => project?.id === projectId);
             return project;
@@ -30,7 +29,7 @@ export function insertProject(data: ProjectFormData): number {
 }
 
 export function setProjects(project: ProjectData[]) {
-    localStorage.setItem(projectKey, JSON.stringify(project));
+    localStorage.setItem(projectKey, JSON.stringify(project.filter(Boolean)));
 }
 
 export function insertTask(task: TaskFormData, projectId: number, type: OperationType = "project") {
@@ -70,14 +69,38 @@ export function insertTask(task: TaskFormData, projectId: number, type: Operatio
     return null;
 }
 
-export function deleteProject(id: number) {
+export function deleteProjectOrTask(id: number, taskId?: number, subTaskId?: number) {
     let projects = getProjects();
     if (projects) {
         let projectIndex = projects.findIndex((project: ProjectData) => project?.id === id);
-        if (projects[projectIndex]) {
-            delete projects[projectIndex];
-            setProjects(projects)
-            return true;
+        if (taskId) {
+            if (projects[projectIndex] && projects[projectIndex].task && projects[projectIndex].task?.length) {
+                let taskIndex = projects[projectIndex]?.task.findIndex((task: TaskData) => task.id === taskId);
+                if (subTaskId) {
+                    if (taskIndex !== -1 && projects[projectIndex].task[taskIndex] && projects[projectIndex].task[taskIndex].subTask?.length) {
+                        let subTaskIndex = projects[projectIndex]?.task[taskIndex].subTask.findIndex((task: TaskData) => task.id === subTaskId);
+                        if (subTaskIndex !== -1 && projects[projectIndex]?.task[taskIndex].subTask[subTaskIndex]) {
+                            delete projects[projectIndex].task[taskIndex].subTask[subTaskIndex];
+                            projects[projectIndex].task[taskIndex].subTask = projects[projectIndex].task[taskIndex].subTask.filter(Boolean)
+                            setProjects(projects)
+                            return true
+                        }
+                    }
+                } else {
+                    if (taskIndex !== -1 && projects[projectIndex].task[taskIndex]) {
+                        delete projects[projectIndex].task[taskIndex];
+                        projects[projectIndex].task = projects[projectIndex].task.filter(Boolean)
+                        setProjects(projects)
+                        return true
+                    }
+                }
+            }
+        } else {
+            if (projects[projectIndex]) {
+                delete projects[projectIndex];
+                setProjects(projects)
+                return true;
+            }
         }
     }
     return false
